@@ -5,7 +5,7 @@ import { NAMA } from "@/lib/util";
 import { logout } from "@/app/actions";
 const NAV = {
   ADMIN: [["/admin", "Monitoring & Direktori"], ["/admin/master", "Master Data"]],
-  TUTOR: [["/tutor", "Ketersediaan Saya"]],
+  TUTOR: [["/tutor", "Jadwal & Ketersediaan"], ["/tutor/profil", "Profil & Biodata"]],
 };
 export default async function Staff({ children }) {
   const s = await getSession();

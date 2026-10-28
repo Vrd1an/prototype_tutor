@@ -80,3 +80,28 @@ aside nav a{display:block;padding:10px 12px;border-radius:12px;color:var(--body)
 .inline{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:14px}.inline label{display:grid;gap:4px;font-size:12px;font-weight:600;color:var(--sub)}.inline input{width:auto}
 .master{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
 .li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+
+/* Komponen Modul 1: Database & Profil Tutor */
+.tab-bar{display:flex;gap:8px;border-bottom:1px solid var(--line);margin-bottom:20px;overflow-x:auto}
+.tab-btn{background:none;border:none;padding:10px 16px;font-size:14px;font-weight:600;color:var(--sub);cursor:pointer;border-bottom:2px solid transparent;border-radius:8px 8px 0 0;transition:.15s;text-decoration:none}
+.tab-btn:hover{color:var(--ink);background:rgba(13,148,136,.05)}
+.tab-btn.active{color:var(--pri);border-bottom-color:var(--pri);background:#fff}
+
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:12px}
+.doc-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--sh)}
+.doc-card .doc-title{font-weight:700;color:var(--ink);font-size:14px;display:flex;justify-content:space-between;align-items:center}
+.doc-card .doc-meta{font-size:12px;color:var(--sub)}
+
+.pill.active{background:#ECFDF5;color:#047857;border-color:#A7F3D0}
+.pill.leave{background:#FEF3C7;color:#B45309;border-color:#FDE68A}
+.pill.inactive{background:#F1F5F9;color:#64748B;border-color:#CBD5E1}
+
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.badge-valid{background:#DCFCE7;color:#15803D}
+.badge-pending{background:#FEF9C3;color:#A16207}
+.badge-need{background:#FEE2E2;color:#B91C1C}
+
+.eval-card{border:1px solid var(--line);border-radius:14px;padding:16px;background:#fff;margin-bottom:12px;display:grid;gap:6px}
+.eval-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.eval-stars{color:#EAB308;font-size:14px;letter-spacing:2px}
+.eval-note{font-size:13.5px;color:var(--body);line-height:1.5;background:var(--mute);padding:10px 12px;border-radius:10px;margin-top:4px}

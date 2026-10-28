@@ -95,7 +95,7 @@ export default async function Portal({ searchParams }) {
                   <div className="tcard-bio">
                     <div className="who">
                       {t.foto ? <img src={t.foto} alt={t.user.name} className="av-img" /> : <div className="av">{initials(t.user.name)}</div>}
-                      <div><h3>{t.user.name}</h3><div className="sub">{t.bidang || t.mapel}</div><span className="tag">{t.mapel}</span></div>
+                      <div><h3>{t.user.name}</h3><div className="sub">{t.bidang || t.mapel}</div><span className="tag">{t.mapel}</span>{t.jenjang && <span className="sub" style={{ fontSize: 11, marginLeft: 6 }}>{t.jenjang}</span>}</div>
                     </div>
                     <div><span className={"pill " + s.k}><i />{s.l}</span></div>
                     {t.bio && <p className="bio">“{t.bio}”</p>}

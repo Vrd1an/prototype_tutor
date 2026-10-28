@@ -12,12 +12,12 @@ const safe = (b) => (b && b.startsWith("/") && !b.startsWith("//") ? b : "/");
 const go = (back, msg, ok) => redirect(back + (msg ? (back.includes("?") ? "&" : "?") + (ok ? "ok" : "e") + "=" + encodeURIComponent(msg) : ""));
 const g = (fd, k) => String(fd.get(k) || "").trim();
 
-async function saveUploadedFile(file) {
+async function saveUploadedFile(file, prefix = "tutor") {
   if (!file || typeof file !== "object" || !file.size || !file.name) return null;
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
   const ext = path.extname(file.name).toLowerCase() || ".jpg";
-  const filename = "tutor-" + Date.now() + ext;
+  const filename = `${prefix}-${Date.now()}${ext}`;
   const uploadDir = path.join(process.cwd(), "public", "uploads");
   await fs.mkdir(uploadDir, { recursive: true });
   await fs.writeFile(path.join(uploadDir, filename), buffer);
@@ -33,6 +33,11 @@ export async function login(fd) {
 }
 export async function logout() { clearSession(); redirect("/"); }
 
+const gList = (fd, k) => {
+  const vals = fd.getAll(k).map((s) => String(s).trim()).filter(Boolean);
+  return vals.length > 0 ? vals.join(", ") : g(fd, k);
+};
+
 /* ---------- Tutor: Update Profil Sendiri ---------- */
 export async function updateTutorProfile(fd) {
   const s = await getSession();
@@ -42,11 +47,10 @@ export async function updateTutorProfile(fd) {
   if (!name) go(b, "Nama lengkap wajib diisi.");
   if (pw && pw.length < 6) go(b, "Password baru minimal 6 karakter.");
 
-  const uploaded = await saveUploadedFile(fd.get("fotoFile"));
+  const uploaded = await saveUploadedFile(fd.get("fotoFile"), "avatar");
   const fotoInput = g(fd, "foto");
   const foto = uploaded || fotoInput;
 
-  // Catatan: Email dan Mapel dikunci oleh Admin, sehingga tidak bisa diubah oleh tutor
   await db.user.update({
     where: { id: s.id },
     data: {
@@ -56,6 +60,7 @@ export async function updateTutorProfile(fd) {
         update: {
           bidang: g(fd, "bidang"),
           phone: g(fd, "phone"),
+          alamat: g(fd, "alamat"),
           bio: g(fd, "bio").slice(0, 500),
           ...(foto ? { foto } : {}),
         },
@@ -64,20 +69,49 @@ export async function updateTutorProfile(fd) {
   });
   s.name = name;
   await setSession(s);
-  go("/tutor", "Profil berhasil disimpan.", 1);
+  go("/tutor#profil", "Profil berhasil disimpan.", 1);
 }
 
-/* ---------- Admin: data tutor ---------- */
+/* ---------- Admin: Data Tutor (Modul 1) ---------- */
 export async function addTutor(fd) {
   await requireRole("ADMIN");
   const b = "/admin/tutor/baru", name = g(fd, "name"), email = g(fd, "email").toLowerCase(), pw = g(fd, "password"), mapel = g(fd, "mapel");
   if (!name || !email || pw.length < 6 || !mapel) go(b, "Lengkapi data. Password minimal 6 karakter.");
   if (await db.user.findUnique({ where: { email } })) go(b, "Email sudah terdaftar.");
-  const uploaded = await saveUploadedFile(fd.get("fotoFile"));
+  
+  const uploaded = await saveUploadedFile(fd.get("fotoFile"), "avatar");
   const foto = uploaded || g(fd, "foto");
-  const u = await db.user.create({ data: { name, email, password: await bcrypt.hash(pw, 10), role: "TUTOR", tutor: { create: { mapel, bidang: g(fd, "bidang"), phone: g(fd, "phone"), bio: g(fd, "bio").slice(0, 500), foto: foto || "" } } } });
-  go("/admin/tutor/" + u.id, "Tutor ditambahkan. Lanjut isi jadwalnya.", 1);
+  const status = g(fd, "status") || "ACTIVE";
+  const active = status === "ACTIVE";
+
+  const u = await db.user.create({
+    data: {
+      name,
+      email,
+      password: await bcrypt.hash(pw, 10),
+      role: "TUTOR",
+      active,
+      tutor: {
+        create: {
+          nik: g(fd, "nik"),
+          alamat: g(fd, "alamat"),
+          status,
+          joinDate: g(fd, "joinDate") || todayWIB(),
+          mapel,
+          bidang: g(fd, "bidang"),
+          jenjang: gList(fd, "jenjang"),
+          jenisKelas: gList(fd, "jenisKelas"),
+          phone: g(fd, "phone"),
+          bio: g(fd, "bio").slice(0, 500),
+          foto: foto || "",
+          catatanInternal: g(fd, "catatanInternal"),
+        },
+      },
+    },
+  });
+  go("/admin/tutor/" + u.id, "Tutor berhasil ditambahkan ke database.", 1);
 }
+
 export async function updateTutor(fd) {
   await requireRole("ADMIN");
   const id = +g(fd, "id"), b = "/admin/tutor/" + id;
@@ -85,16 +119,119 @@ export async function updateTutor(fd) {
   if (!name || !email || !mapel) go(b, "Nama, email, dan mapel wajib diisi.");
   if (pw && pw.length < 6) go(b, "Password baru minimal 6 karakter.");
   if (await db.user.findFirst({ where: { email, NOT: { id } } })) go(b, "Email sudah dipakai akun lain.");
-  const uploaded = await saveUploadedFile(fd.get("fotoFile"));
+
+  const uploaded = await saveUploadedFile(fd.get("fotoFile"), "avatar");
   const fotoInput = g(fd, "foto");
   const foto = uploaded || fotoInput;
-  await db.user.update({ where: { id }, data: { name, email, active: g(fd, "active") !== "0", ...(pw ? { password: await bcrypt.hash(pw, 10) } : {}), tutor: { update: { mapel, bidang: g(fd, "bidang"), phone: g(fd, "phone"), bio: g(fd, "bio").slice(0, 500), ...(foto ? { foto } : {}) } } } });
-  go(b, "Data tutor disimpan.", 1);
+  const status = g(fd, "status") || "ACTIVE";
+  const active = status === "ACTIVE";
+
+  await db.user.update({
+    where: { id },
+    data: {
+      name,
+      email,
+      active,
+      ...(pw ? { password: await bcrypt.hash(pw, 10) } : {}),
+      tutor: {
+        update: {
+          nik: g(fd, "nik"),
+          alamat: g(fd, "alamat"),
+          status,
+          joinDate: g(fd, "joinDate"),
+          mapel,
+          bidang: g(fd, "bidang"),
+          jenjang: gList(fd, "jenjang"),
+          jenisKelas: gList(fd, "jenisKelas"),
+          phone: g(fd, "phone"),
+          bio: g(fd, "bio").slice(0, 500),
+          catatanInternal: g(fd, "catatanInternal"),
+          ...(foto ? { foto } : {}),
+        },
+      },
+    },
+  });
+  go(b, "Data tutor berhasil disimpan.", 1);
 }
+
 export async function delTutor(fd) {
   await requireRole("ADMIN");
   await db.user.delete({ where: { id: +g(fd, "id") } });
-  go("/admin", "Tutor dihapus.", 1);
+  go("/admin", "Tutor berhasil dihapus.", 1);
+}
+
+/* ---------- Modul 1: Dokumen Administrasi Tutor ---------- */
+export async function addTutorDocument(fd) {
+  const s = await getSession();
+  if (!s || (s.role !== "ADMIN" && s.role !== "TUTOR")) redirect("/login");
+  const tutorId = +g(fd, "tutorId");
+  const back = safe(g(fd, "back")) || (s.role === "ADMIN" ? "/admin/tutor/" + tutorId : "/tutor");
+  const jenis = g(fd, "jenis") || "Lainnya";
+  const namaFile = g(fd, "namaFile");
+  if (!namaFile) go(back, "Nama / label dokumen wajib diisi.");
+
+  const uploaded = await saveUploadedFile(fd.get("documentFile"), "doc");
+  const fileUrl = uploaded || g(fd, "fileUrl");
+  if (!fileUrl) go(back, "Pilih file dokumen atau masukkan link dokumen.");
+
+  const status = s.role === "ADMIN" ? (g(fd, "status") || "VALID") : "MENUNGGU_VERIFIKASI";
+  const catatan = g(fd, "catatan");
+
+  await db.tutorDocument.create({
+    data: { tutorId, jenis, namaFile, fileUrl, status, catatan },
+  });
+  go(back, "Dokumen administrasi berhasil ditambahkan.", 1);
+}
+
+export async function updateTutorDocumentStatus(fd) {
+  await requireRole("ADMIN");
+  const id = +g(fd, "id");
+  const back = safe(g(fd, "back"));
+  const status = g(fd, "status");
+  const catatan = g(fd, "catatan");
+  await db.tutorDocument.update({
+    where: { id },
+    data: { status, catatan },
+  });
+  go(back, "Status verifikasi dokumen diperbarui.", 1);
+}
+
+export async function delTutorDocument(fd) {
+  const s = await getSession();
+  if (!s || (s.role !== "ADMIN" && s.role !== "TUTOR")) redirect("/login");
+  const id = +g(fd, "id");
+  const back = safe(g(fd, "back"));
+  await db.tutorDocument.delete({ where: { id } });
+  go(back, "Dokumen dihapus.", 1);
+}
+
+/* ---------- Modul 1: Catatan Evaluasi Koordinator ---------- */
+export async function addTutorEvaluation(fd) {
+  const s = await requireRole("ADMIN");
+  const tutorId = +g(fd, "tutorId");
+  const back = safe(g(fd, "back"));
+  const catatan = g(fd, "catatan");
+  if (!catatan) go(back, "Catatan evaluasi wajib diisi.");
+
+  await db.tutorEvaluation.create({
+    data: {
+      tutorId,
+      penilai: g(fd, "penilai") || s.name || "Koordinator",
+      tanggal: g(fd, "tanggal") || todayWIB(),
+      skor: Math.max(1, Math.min(5, +g(fd, "skor") || 5)),
+      kategori: g(fd, "kategori") || "Kinerja",
+      catatan,
+    },
+  });
+  go(back, "Catatan evaluasi internal berhasil disimpan.", 1);
+}
+
+export async function delTutorEvaluation(fd) {
+  await requireRole("ADMIN");
+  const id = +g(fd, "id");
+  const back = safe(g(fd, "back"));
+  await db.tutorEvaluation.delete({ where: { id } });
+  go(back, "Catatan evaluasi dihapus.", 1);
 }
 
 /* ---------- Admin: master data ---------- */

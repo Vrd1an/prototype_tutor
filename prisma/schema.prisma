@@ -18,18 +18,51 @@ model User {
 }
 
 model Tutor {
-  id         Int            @id @default(autoincrement())
-  userId     Int            @unique
-  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  mapel      String
-  bidang     String         @default("")
-  phone      String         @default("")
-  bio        String         @default("") @db.VarChar(500)
-  foto       String         @default("") @db.VarChar(500)
-  izin       Boolean        @default(false) // berlaku hanya jika statusDate = hari ini
-  notice     String         @default("") @db.VarChar(300)
-  statusDate String         @default("") // YYYY-MM-DD
-  avails     Availability[]
+  id              Int               @id @default(autoincrement())
+  userId          Int               @unique
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nik             String            @default("")
+  alamat          String            @default("") @db.VarChar(300)
+  status          String            @default("ACTIVE") // ACTIVE | ON_LEAVE | INACTIVE
+  joinDate        String            @default("") // YYYY-MM-DD
+  mapel           String
+  bidang          String            @default("")
+  jenjang         String            @default("") // SD, SMP, SMA, UTBK
+  jenisKelas      String            @default("") // Reguler, Privat, Online, Offline
+  phone           String            @default("")
+  bio             String            @default("") @db.VarChar(500)
+  foto            String            @default("") @db.VarChar(500)
+  catatanInternal String            @default("") @db.VarChar(1000) // Catatan khusus koordinator
+  izin            Boolean           @default(false) // berlaku hanya jika statusDate = hari ini
+  notice          String            @default("") @db.VarChar(300)
+  statusDate      String            @default("") // YYYY-MM-DD
+  avails          Availability[]
+  documents       TutorDocument[]
+  evaluations     TutorEvaluation[]
+}
+
+model TutorDocument {
+  id        Int      @id @default(autoincrement())
+  tutorId   Int
+  tutor     Tutor    @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  jenis     String   // CV | Ijazah | Sertifikat | Kontrak | Lainnya
+  namaFile  String
+  fileUrl   String   @db.VarChar(500)
+  status    String   @default("VALID") // VALID | MENUNGGU_VERIFIKASI | PERLU_DIPERBARUI
+  catatan   String   @default("") @db.VarChar(255)
+  createdAt DateTime @default(now())
+}
+
+model TutorEvaluation {
+  id        Int      @id @default(autoincrement())
+  tutorId   Int
+  tutor     Tutor    @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  penilai   String
+  tanggal   String   // YYYY-MM-DD
+  skor      Int      @default(5) // 1 - 5
+  kategori  String   @default("Kinerja") // Kinerja | Kedisiplinan | Metode Mengajar | Administrasi
+  catatan   String   @db.VarChar(1000)
+  createdAt DateTime @default(now())
 }
 
 model Program {

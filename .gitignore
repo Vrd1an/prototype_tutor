@@ -2,3 +2,8 @@ node_modules
 .next
 .env
 prisma/dev.db*
+
+# Abaikan seluruh dokumen perencanaan, PRD, AI rules, dan skills
+*.md
+!README.md
+.agents/

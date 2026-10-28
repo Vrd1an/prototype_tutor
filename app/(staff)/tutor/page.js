@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { requireRole } from "@/lib/auth";
 import { todayWIB, dow, todayInfo, initials, tanggalLengkap } from "@/lib/util";

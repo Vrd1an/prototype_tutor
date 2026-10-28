@@ -42,7 +42,7 @@ const gList = (fd, k) => {
 export async function updateTutorProfile(fd) {
   const s = await getSession();
   if (!s || s.role !== "TUTOR") redirect("/login");
-  const b = "/tutor#profil";
+  const b = "/tutor/profil";
   const name = g(fd, "name"), pw = g(fd, "password");
   if (!name) go(b, "Nama lengkap wajib diisi.");
   if (pw && pw.length < 6) go(b, "Password baru minimal 6 karakter.");
@@ -269,6 +269,36 @@ export async function addAvail(fd) {
   if (c) go(b, "Ruangan sudah dipakai " + c.tutor.user.name + " di hari dan sesi itu.");
   await db.availability.create({ data: d });
   go(b, "Jadwal ditambahkan.", 1);
+}
+export async function updateAvail(fd) {
+  const tutorId = await ownerId(fd), b = safe(g(fd, "back"));
+  const id = +g(fd, "id");
+  if (!id) go(b, "Jadwal tidak ditemukan.");
+  const existing = await db.availability.findFirst({ where: { id, tutorId } });
+  if (!existing) go(b, "Jadwal tidak ditemukan atau tidak memiliki akses.");
+
+  const d = {
+    hari: +g(fd, "hari"),
+    sesiId: +g(fd, "sesiId"),
+    roomId: +g(fd, "roomId"),
+    programId: +g(fd, "programId"),
+    catatan: g(fd, "catatan").slice(0, 255),
+  };
+  if (!d.sesiId || !d.roomId || !d.programId) go(b, "Pilih sesi, ruangan, dan program.");
+
+  const tutorConflict = await db.availability.findFirst({
+    where: { tutorId, hari: d.hari, sesiId: d.sesiId, NOT: { id } },
+  });
+  if (tutorConflict) go(b, "Anda sudah memiliki jadwal lain di hari dan sesi tersebut.");
+
+  const roomConflict = await db.availability.findFirst({
+    where: { roomId: d.roomId, hari: d.hari, sesiId: d.sesiId, NOT: { id } },
+    include: { tutor: { include: { user: true } } },
+  });
+  if (roomConflict) go(b, "Ruangan sudah dipakai oleh " + roomConflict.tutor.user.name + " di hari dan sesi tersebut.");
+
+  await db.availability.update({ where: { id }, data: d });
+  go(b, "Jadwal berhasil diperbarui.", 1);
 }
 export async function delAvail(fd) {
   const tutorId = await ownerId(fd), b = safe(g(fd, "back"));

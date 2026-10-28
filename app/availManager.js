@@ -19,8 +19,8 @@ export default async function AvailManager({ tutorId, back }) {
           <label>Sesi<select name="sesiId">{sesi.map((x) => <option key={x.id} value={x.id}>{x.label} ({x.start}–{x.end})</option>)}</select></label>
           <label>Ruangan<select name="roomId">{rooms.map((x) => <option key={x.id} value={x.id}>{x.name}{x.lokasi ? " · " + x.lokasi : ""}</option>)}</select></label>
           <label>Program<select name="programId">{programs.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
-          <label>Keterangan untuk pengunjung (opsional)<textarea name="catatan" rows={2} maxLength={255} placeholder="Contoh: bawa buku latihan bab 3" /></label>
-          <button className="btn">Simpan jadwal</button>
+          <label>Keterangan mingguan sesi (opsional, muncul rutin setiap minggu)<textarea name="catatan" rows={2} maxLength={255} placeholder="Contoh: Bawa modul latihan bab terkait &amp; aktif berdiskusi" /></label>
+          <button className="btn">Simpan jadwal mingguan</button>
         </form>
       </section>
       <section className="panel">

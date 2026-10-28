@@ -25,6 +25,7 @@ model Tutor {
   bidang     String         @default("")
   phone      String         @default("")
   bio        String         @default("") @db.VarChar(500)
+  foto       String         @default("") @db.VarChar(500)
   izin       Boolean        @default(false) // berlaku hanya jika statusDate = hari ini
   notice     String         @default("") @db.VarChar(300)
   statusDate String         @default("") // YYYY-MM-DD

@@ -92,26 +92,32 @@ export default async function Portal({ searchParams }) {
               const room = s.run ? s.run.room.name : s.next ? s.next.room.name : null;
               return (
                 <article className="tcard" key={t.id}>
-                  <div className="who">
-                    <div className="av">{initials(t.user.name)}</div>
-                    <div><h3>{t.user.name}</h3><div className="sub">{t.bidang || t.mapel}</div><span className="tag">{t.mapel}</span></div>
+                  <div className="tcard-bio">
+                    <div className="who">
+                      {t.foto ? <img src={t.foto} alt={t.user.name} className="av-img" /> : <div className="av">{initials(t.user.name)}</div>}
+                      <div><h3>{t.user.name}</h3><div className="sub">{t.bidang || t.mapel}</div><span className="tag">{t.mapel}</span></div>
+                    </div>
+                    <div><span className={"pill " + s.k}><i />{s.l}</span></div>
+                    {t.bio && <p className="bio">“{t.bio}”</p>}
+                    {t.phone && <a className="btn s sm wa-btn" href={wa(t.phone)} target="_blank" rel="noopener noreferrer">Hubungi via WhatsApp</a>}
                   </div>
-                  <div><span className={"pill " + s.k}><i />{s.l}</span></div>
-                  {info.notice && <div className="alert">{info.notice}</div>}
-                  <div className="slotbox"><div className="cap">Jadwal sesi {label}</div>
-                    {slots.map((a) => (
-                      <div className="slot" key={a.id}>
-                        <b>{a.sesi.label}: {a.sesi.start}–{a.sesi.end} WIB</b>
-                        <div>{a.room.name}{a.room.lokasi ? " · " + a.room.lokasi : ""} · {a.program.name}</div>
-                        {a.catatan && <em>{a.catatan}</em>}
-                      </div>))}
+                  <div className="tcard-sched">
+                    {info.notice && <div className="alert">{info.notice}</div>}
+                    <div className="slotbox">
+                      <div className="cap">Jadwal sesi {label}</div>
+                      {slots.map((a) => (
+                        <div className="slot" key={a.id}>
+                          <b>{a.sesi.label}: {a.sesi.start}–{a.sesi.end} WIB</b>
+                          <div>{a.room.name}{a.room.lokasi ? " · " + a.room.lokasi : ""} · {a.program.name}</div>
+                          {a.catatan && <em>{a.catatan}</em>}
+                        </div>
+                      ))}
+                      <div className="foot">
+                        <span className="sub">{s.run ? "Selesai pukul " + s.run.sesi.end : s.next ? "Mulai pukul " + s.next.sesi.start : ""}</span>
+                        {room && <span className={"roompill" + (s.run ? "" : " q")}>{room}</span>}
+                      </div>
+                    </div>
                   </div>
-                  {t.bio && <p className="bio">“{t.bio}”</p>}
-                  <div className="foot">
-                    <span className="sub">{s.run ? "Selesai pukul " + s.run.sesi.end : s.next ? "Mulai pukul " + s.next.sesi.start : ""}</span>
-                    {room && <span className={"roompill" + (s.run ? "" : " q")}>{room}</span>}
-                  </div>
-                  {t.phone && <a className="btn s sm" href={wa(t.phone)} target="_blank" rel="noopener noreferrer">Hubungi via WhatsApp</a>}
                 </article>);
             })}</div>
           ) : <p className="empty" style={{ marginTop: 16 }}>Tidak ada tutor yang cocok dengan pencarian ini.</p>}

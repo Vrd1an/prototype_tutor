@@ -10,8 +10,8 @@ export default function Login({ searchParams }) {
         <button className="btn">Masuk</button>
       </form>
       <p className="sub" style={{ marginTop: 14 }}>Akun tutor dibuat oleh admin. <Link href="/">← Kembali ke portal</Link></p>
-      <p className="sub" style={{ marginTop: 14 }}>Admin: admin@bimbel.test | admin123</p>
-      <p className="sub" style={{ marginTop: 14 }}>Tutor: rina@bimbel.test | tutor123</p>
+      <p className="sub">Admin: admin@bimbel.test | admin123</p>
+      <p className="sub">Tutor: rina@bimbel.test | tutor123</p>
     </div>
   )
 }

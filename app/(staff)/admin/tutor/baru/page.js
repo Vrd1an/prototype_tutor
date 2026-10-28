@@ -17,6 +17,8 @@ export default async function Baru({ searchParams }) {
           <label>Mata pelajaran<input name="mapel" required placeholder="Matematika" /></label>
           <label>Bidang / spesialisasi<input name="bidang" placeholder="Aljabar & Kalkulus" /></label>
           <label>No. HP / WhatsApp<input name="phone" placeholder="08xxxxxxxxxx" /></label>
+          <label>Foto Profil (Upload File)<input type="file" name="fotoFile" accept="image/*" /></label>
+          <label>Atau Link / URL Foto<input name="foto" placeholder="https://... atau /uploads/..." /></label>
           <label>Keterangan singkat<textarea name="bio" rows={3} maxLength={500} /></label>
           <button className="btn">Simpan tutor</button>
         </form>

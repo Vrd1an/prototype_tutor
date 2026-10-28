@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  name     String
+  email    String  @unique
+  password String
+  role     String // ADMIN | TUTOR
+  active   Boolean @default(true)
+  tutor    Tutor?
+}
+
+model Tutor {
+  id         Int            @id @default(autoincrement())
+  userId     Int            @unique
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mapel      String
+  bidang     String         @default("")
+  phone      String         @default("")
+  bio        String         @default("") @db.VarChar(500)
+  izin       Boolean        @default(false) // berlaku hanya jika statusDate = hari ini
+  notice     String         @default("") @db.VarChar(300)
+  statusDate String         @default("") // YYYY-MM-DD
+  avails     Availability[]
+}
+
+model Program {
+  id     Int            @id @default(autoincrement())
+  name   String         @unique
+  avails Availability[]
+}
+
+model Room {
+  id     Int            @id @default(autoincrement())
+  name   String         @unique
+  lokasi String         @default("")
+  avails Availability[]
+}
+
+model Sesi {
+  id     Int            @id @default(autoincrement())
+  label  String
+  start  String
+  end    String
+  avails Availability[]
+}
+
+// Jadwal mingguan berulang milik tutor
+model Availability {
+  id        Int     @id @default(autoincrement())
+  tutorId   Int
+  tutor     Tutor   @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  programId Int
+  program   Program @relation(fields: [programId], references: [id])
+  sesiId    Int
+  sesi      Sesi    @relation(fields: [sesiId], references: [id])
+  roomId    Int
+  room      Room    @relation(fields: [roomId], references: [id])
+  hari      Int // 0=Minggu ... 6=Sabtu
+  catatan   String  @default("") @db.VarChar(255)
+
+  @@unique([tutorId, hari, sesiId]) // tutor tidak bentrok
+  @@unique([roomId, hari, sesiId]) // ruangan tidak bentrok
+}
